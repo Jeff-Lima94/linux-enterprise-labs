@@ -1,52 +1,37 @@
-# linux-enterprise-labs
-Laboratórios práticos de administração Linux Enterprise, troubleshooting, automação e boas práticas de infraestrutura.
 
-Objetivo
+# Linux Enterprise Labs
 
-Este repositório reúne laboratórios práticos utilizados no estudo e aperfeiçoamento das atividades de administração Linux Enterprise.
+Laboratórios práticos desenvolvidos para simular ambientes de produção Linux Enterprise.
 
-Os laboratórios simulam situações reais encontradas em ambientes corporativos envolvendo:
+## Tecnologias
 
-Administração Linux
-Troubleshooting
-Performance
-Segurança
-Redes
-Systemd
-LVM
-Observabilidade
-Automação
+- RHEL 9
+- Oracle Linux
+- Ubuntu Server
+- Bash
+- Systemd
+- LVM
+- SSH
+- Networking
+- SELinux
+- Firewalld
+- Docker
+- Git
 
-Tecnologias
+---
 
-Linux
-Red Hat
-Ubuntu
-CentOS
-Oracle Linux
-Bash
-Docker
-Git
-Python
-Ansible
-Terraform
-Datadog
-Grafana
-Prometheus
+## Laboratórios
 
-Laboratório	Tema
-01	Usuários
-02	Permissões
-03	Processos
-04	Systemd
-05	LVM
-06	Rede
-07	SSH
-08	Logrotate
-09	Firewall
-10	SELinux
-11	Performance
-12	Monitoramento
-13	Backup
-14	Hardening
-15	Troubleshooting
+| Lab | Tema | Status |
+|------|------|--------|
+| ✅ Lab 01 | Gerenciamento de Usuários e Grupos | Concluído |
+| 🚧 Lab 02 | Permissões e ACL | Em desenvolvimento |
+| 🚧 Lab 03 | Systemd e Services | Em desenvolvimento |
+| 🚧 Lab 04 | LVM | Em desenvolvimento |
+| 🚧 Lab 05 | Redes | Em desenvolvimento |
+| 🚧 Lab 06 | Troubleshooting | Em desenvolvimento |
+
+---
+
+Objetivo:
+Criar um portfólio de administração Linux voltado para vagas de Linux Engineer, Cloud Engineer, DevOps e SRE.
