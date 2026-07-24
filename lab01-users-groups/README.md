@@ -1,11 +1,13 @@
 Lab 01
 Gerenciamento de Usuários e Grupos
-Objetivo
 
+
+Objetivo:
 Aprender a criar, modificar e administrar usuários e grupos em ambientes Linux Enterprise.
 
 Cenário:
 Imagine que um novo colaborador entrou na empresa.
+
 
 Precisamos:
 ✔ Criar usuário
@@ -16,10 +18,13 @@ Precisamos:
 ✔ Shell
 ✔ Permissões
 
+
 Ambiente
 Ubuntu Server 24
 RHEL 9
 Oracle Linux 9
+
+
 
 Comandos utilizados
 useradd
