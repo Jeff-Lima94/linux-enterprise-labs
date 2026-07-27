@@ -25,20 +25,6 @@ RHEL 9
 Oracle Linux 9
 
 
-
-Comandos utilizados
-useradd
-passwd
-usermod
-groupadd
-groupmod
-id
-groups
-whoami
-chage
-vipw
-
-
 Exercício
 
 Criar usuário
