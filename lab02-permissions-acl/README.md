@@ -243,15 +243,7 @@ Vamos interpretar cada campo.
 
 -rwxr-x---
 
-Separando:
-
--
-
-rwx
-
-r-x
-
----
+Separando: - rwx r-x ---
 Primeiro caractere
 
 Indica o tipo.
@@ -349,6 +341,8 @@ Mostra somente o diretório.
 
 Muito utilizado para troubleshooting.
 
+
+
 Exercício Prático 1
 
 Crie um ambiente de testes.
@@ -372,6 +366,8 @@ arquivo1.txt
 script.sh
 
 projetos/
+
+
 Exercício Prático 2
 
 Visualize detalhes.
@@ -417,15 +413,12 @@ a = all
 
 Operadores:
 
-+
 
-adiciona
--
+(+)  adiciona
 
-remove
-=
+(-) remove
 
-define exatamente
+(=) define exatamente
 
 Exemplo:
 
@@ -467,35 +460,36 @@ Somamos os valores para obter a permissão desejada.
 
 Exemplo:
 
-rwx
+rwx 4 + 2 + 1  7 
 
-4 + 2 + 1
+rw- 4 + 2   6
 
-7
-rw-
+r-x 4 + 1  5
 
-4 + 2
+r--  4
 
-6
-r-x
+---   0
 
-4 + 1
-
-5
-r--
-
-4
----
-0
 Os exemplos mais comuns
 Código	Permissão
+
+
 777	rwxrwxrwx
+
 755	rwxr-xr-x
+
 750	rwxr-x---
+
 700	rwx------
+
 644	rw-r--r--
+
 640	rw-r-----
+
 600	rw-------
+
+
+
 Exercício
 
 Execute:
@@ -541,3 +535,260 @@ Por que 777 é considerado uma má prática?
 O que representa o primeiro caractere na saída do ls -l?
 
 Esse é um cenário bastante comum em ambientes corporativos.
+
+
+LAB 02 — Parte 2: Ownership (chown e chgrp)
+Objetivo
+
+Nesta etapa você aprenderá a:
+
+Entender o conceito de proprietário (owner) e grupo (group).
+Alterar a propriedade de arquivos e diretórios.
+Alterar o grupo associado.
+Aplicar alterações recursivamente.
+Identificar e corrigir problemas de acesso causados por ownership incorreto.
+Aplicar boas práticas utilizadas em ambientes Enterprise.
+Cenário Corporativo
+
+Você é responsável por um servidor Oracle Linux utilizado por três equipes:
+
+Financeiro
+RH
+TI
+
+O usuário joao, do departamento Financeiro, criou um diretório com relatórios mensais.
+
+Ele saiu de férias e outro colaborador precisa continuar o trabalho.
+
+Atualmente os demais usuários recebem:
+
+Permission denied
+
+Sua missão é descobrir o motivo e corrigir o acesso sem conceder permissões excessivas.
+
+Revisando o ls -l
+
+Execute:
+
+ls -l
+
+Exemplo:
+
+-rw-r----- 1 joao financeiro 2548 Jul 28 10:35 relatorio.xlsx
+
+Vamos interpretar:
+
+Campo	Significado
+-rw-r-----	Permissões
+1	Número de links físicos
+joao	Proprietário (owner)
+financeiro	Grupo
+2548	Tamanho
+Jul 28 10:35	Última modificação
+relatorio.xlsx	Nome do arquivo
+
+Importante: as permissões (rwx) sempre são avaliadas considerando, nesta ordem: proprietário, grupo e outros. Por isso, o owner e o group influenciam diretamente o acesso.
+
+Conceito de Owner
+
+Todo arquivo possui um proprietário.
+
+Normalmente, quem cria um arquivo torna-se seu dono.
+
+Exemplo:
+
+touch contrato.pdf
+
+Agora:
+
+ls -l contrato.pdf
+
+Saída:
+
+-rw-r--r-- 1 jeff financeiro 0 Jul 28 11:20 contrato.pdf
+
+Nesse caso:
+
+Owner: jeff
+Grupo: financeiro
+Alterando o proprietário (chown)
+
+Sintaxe:
+
+sudo chown novo_usuario arquivo
+
+Exemplo:
+
+sudo chown maria contrato.pdf
+
+Valide:
+
+ls -l contrato.pdf
+
+Resultado esperado:
+
+-rw-r--r-- 1 maria financeiro ...
+Alterando proprietário e grupo ao mesmo tempo
+
+Essa é uma prática muito comum em ambientes corporativos.
+
+sudo chown maria:financeiro contrato.pdf
+
+Agora:
+
+Owner = maria
+Grupo = financeiro
+Alterando apenas o grupo (chgrp)
+
+Também é possível alterar somente o grupo.
+
+sudo chgrp rh contrato.pdf
+
+Resultado:
+
+-rw-r--r-- 1 maria rh ...
+
+
+
+Exercício Prático 1
+
+Crie um diretório para simular um compartilhamento:
+
+mkdir ~/empresa
+
+touch ~/empresa/relatorio1.txt
+
+touch ~/empresa/relatorio2.txt
+
+ls -l ~/empresa
+
+Observe quem é o proprietário e o grupo.
+
+
+
+Exercício Prático 2
+
+Altere o grupo:
+
+sudo chgrp financeiro ~/empresa/relatorio1.txt
+
+Valide:
+
+ls -l ~/empresa
+Exercício Prático 3
+
+Altere o proprietário:
+
+sudo chown maria ~/empresa/relatorio2.txt
+
+Valide novamente.
+
+Alteração recursiva
+
+Imagine um diretório com milhares de arquivos.
+
+Alterar um por um seria inviável.
+
+Para isso usamos:
+
+sudo chown -R maria:financeiro /dados/projetos
+
+O parâmetro -R significa recursivo, aplicando a alteração ao diretório e a todo o seu conteúdo.
+
+Atenção com o -R
+
+Antes de executar:
+
+sudo chown -R
+
+sempre confirme o caminho informado.
+
+Um erro de digitação pode alterar a propriedade de grandes áreas do sistema e causar indisponibilidade de serviços.
+
+Em ambientes corporativos, mudanças recursivas devem ser planejadas e, quando possível, testadas primeiro em um ambiente de homologação.
+
+
+
+Troubleshooting
+Problema 1
+
+O usuário pertence ao grupo correto, mas ainda recebe:
+
+Permission denied
+
+Verifique:
+
+id usuario
+
+Exemplo:
+
+uid=1002(maria)
+
+groups=financeiro,rh
+
+Confirme também as permissões do diretório:
+
+ls -ld /dados
+
+Lembre-se de que é necessário ter permissão de execução (x) em todos os diretórios do caminho para conseguir acessar um arquivo.
+
+Problema 2
+
+O proprietário está correto, mas o grupo não.
+
+
+Verifique:
+
+ls -l
+
+
+Corrija:
+
+sudo chgrp financeiro arquivo
+Problema 3
+
+As permissões parecem corretas.
+
+Verifique se existe ACL aplicada.
+
+getfacl arquivo
+
+Na próxima parte do laboratório estudaremos ACL em profundidade.
+
+Boas práticas
+
+✔ Utilize grupos para controlar acesso sempre que possível.
+
+✔ Evite alterar proprietários desnecessariamente.
+
+✔ Documente mudanças de ownership em ambientes produtivos.
+
+✔ Prefira conceder acesso por grupo em vez de compartilhar credenciais.
+
+✔ Valide as alterações com ls -l após cada mudança.
+
+✔ Use chown -R apenas quando tiver certeza do impacto.
+
+Como validar
+
+Ao final desta etapa você deve conseguir responder:
+
+Quem é o proprietário de um arquivo?
+Qual a função do grupo associado?
+Quando usar chown?
+Quando usar chgrp?
+Qual a diferença entre alterar permissões e alterar ownership?
+Quando utilizar a opção -R?
+
+
+
+Perguntas de entrevista
+Qual a diferença entre chmod, chown e chgrp?
+
+Em qual ordem o Linux verifica permissões de acesso?
+
+O que acontece se um usuário for owner de um arquivo, mas não pertencer ao grupo associado?
+
+Quais os riscos de executar chown -R em um caminho incorreto?
+
+Por que, em ambientes corporativos, normalmente utilizamos grupos em vez de conceder permissões individualmente?
