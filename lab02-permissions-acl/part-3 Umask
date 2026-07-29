@@ -1,0 +1,318 @@
+LAB 02 - Parte 3: Umask
+Objetivo
+
+Ao final desta etapa você será capaz de:
+
+Entender o que é o umask.
+
+Compreender como o Linux define as permissões padrão.
+
+Calcular permissões manualmente.
+
+Alterar o umask temporariamente e permanentemente.
+
+Identificar problemas relacionados ao umask.
+
+Aplicar boas práticas de segurança.
+
+Cenário Corporativo
+
+Você trabalha como Analista Linux em um ambiente Oracle Linux.
+
+Após uma auditoria, foi identificado que documentos confidenciais do setor Financeiro estavam sendo criados com permissão de leitura para qualquer usuário do servidor.
+
+O gestor pergunta:
+
+"Por que esses arquivos já nasceram com essas permissões?"
+
+Você precisa identificar a configuração responsável e corrigi-la sem quebrar as aplicações existentes.
+
+O que é o umask?
+
+A palavra umask significa User File Creation Mode Mask.
+
+O umask define quais permissões serão removidas quando um novo arquivo ou diretório é criado.
+
+Ponto importante: o umask não adiciona permissões, ele apenas retira permissões da configuração padrão.
+
+Essa é uma dúvida muito comum em entrevistas.
+
+Como o Linux cria permissões?
+
+Quando um arquivo é criado, o sistema parte de um conjunto de permissões base:
+
+Tipo	Permissão base
+
+Arquivo	666 (rw-rw-rw-)
+
+Diretório	777 (rwxrwxrwx)
+
+Você pode pensar:
+
+"Mas por que um arquivo não nasce com 777?"
+
+Porque, por questões de segurança, arquivos comuns não recebem permissão de execução automaticamente. Apenas diretórios começam com a base 777.
+
+Como funciona o cálculo?
+
+O cálculo é simples:
+
+Permissão final = Permissão base − Umask
+
+Exemplo:
+
+Umask:
+
+022
+
+Arquivo:
+
+666
+-022
+----
+644
+
+Resultado:
+
+rw-r--r--
+
+Diretório:
+
+777
+-022
+----
+755
+
+Resultado:
+
+rwxr-xr-x
+
+É por isso que, na maioria das distribuições Linux, você verá:
+
+Arquivo → 644
+
+Diretório → 755
+
+Verificando o umask atual
+
+Execute:
+
+umask
+
+Exemplo:
+
+0022
+
+Para ver em formato simbólico:
+
+umask -S
+
+Saída:
+
+u=rwx,g=rx,o=rx
+
+Essa visualização costuma ser mais intuitiva.
+
+Exercício Prático 1
+
+Crie um diretório de testes:
+
+mkdir ~/lab-umask
+
+cd ~/lab-umask
+
+Verifique o umask:
+
+umask
+
+umask -S
+
+Agora crie um arquivo e um diretório:
+
+touch arquivo1.txt
+
+mkdir projetos
+
+Verifique as permissões:
+
+ls -l
+
+Resultado esperado (com umask 022):
+
+-rw-r--r-- arquivo1.txt
+
+drwxr-xr-x projetos
+
+
+Alterando o umask temporariamente
+
+O umask pode ser alterado apenas para a sessão atual.
+
+Exemplo:
+
+umask 077
+
+Crie novos arquivos:
+
+touch segredo.txt
+
+mkdir documentos
+
+Valide:
+
+ls -l
+
+Resultado esperado:
+
+-rw-------
+
+drwx------
+
+Agora apenas o proprietário possui acesso.
+
+Outro exemplo
+
+Defina:
+
+umask 027
+
+Crie novos objetos:
+
+touch relatorio.txt
+
+mkdir financeiro
+
+Resultado esperado:
+
+Arquivo:
+
+-rw-r-----
+
+Diretório:
+
+drwxr-x---
+
+Observe que:
+
+o grupo ainda possui acesso de leitura (e execução no diretório);
+outros usuários não possuem acesso.
+
+Esse valor (027) é bastante comum em ambientes corporativos.
+
+Valores mais utilizados
+
+Umask	Arquivo	Diretório	Cenário
+
+022	644	755	Padrão da maioria das distribuições
+
+027	640	750	Ambientes corporativos
+
+077	600	700	Ambientes altamente restritos
+
+002	664	775	Equipes colaborativas
+
+
+Alterando permanentemente
+
+Dependendo da distribuição, o umask pode ser configurado em diferentes locais.
+
+Os mais comuns são:
+
+/etc/profile
+
+/etc/bashrc
+
+~/.bash_profile
+
+~/.bashrc
+
+Importante: alterar o umask global afeta todos os usuários e pode impactar aplicações. Em produção, mudanças desse tipo devem ser avaliadas e homologadas antes da implantação.
+
+Troubleshooting
+
+
+Problema 1
+
+Um arquivo recém-criado está acessível para todos os usuários.
+
+Verifique:
+
+umask
+
+Se o valor for muito permissivo, ajuste conforme a política da empresa.
+
+
+Problema 2
+
+A aplicação cria arquivos com permissões diferentes das esperadas.
+
+Verifique:
+
+o usuário que executa o serviço;
+
+o umask configurado para esse usuário;
+
+se o serviço define um umask próprio (alguns serviços iniciados pelo systemd podem ter configurações específicas).
+
+
+Problema 3
+
+Você alterou o umask, mas nada mudou.
+
+Lembre-se:
+
+O umask não altera arquivos existentes.
+
+Ele afeta apenas novos arquivos e diretórios criados após a mudança.
+
+Boas práticas
+
+✔ Utilize 022 para servidores de uso geral, quando compatível com a política da organização.
+
+✔ Utilize 027 em ambientes corporativos onde arquivos não devem ser acessíveis por todos.
+
+✔ Utilize 077 para dados sensíveis, como chaves privadas e arquivos confidenciais.
+
+✔ Sempre valide a criação de novos arquivos após alterar o umask.
+
+✔ Documente alterações globais em servidores de produção.
+
+Como validar
+
+Ao concluir esta etapa, você deve conseguir responder:
+
+O que é o umask?
+
+Ele adiciona ou remove permissões?
+
+Por que arquivos normalmente nascem como 644?
+
+Por que diretórios normalmente nascem como 755?
+
+Qual a diferença entre 022, 027 e 077?
+
+O umask altera arquivos já existentes?
+
+Perguntas de entrevista
+
+O que é umask e qual seu objetivo?
+
+Como o Linux calcula as permissões de novos arquivos?
+
+Por que um arquivo não nasce executável?
+
+Em quais situações você utilizaria umask 077?
+
+Como verificar o umask atual?
+
+Alterar o umask afeta arquivos existentes?
+
+O que eu faria em produção?
+
+Definiria o umask de acordo com a política de segurança da empresa, evitando valores excessivamente permissivos.
+
+Validaria se aplicações críticas (como servidores web, bancos de dados e serviços de backup) dependem de permissões específicas antes de alterar configurações globais.
+
+Testaria mudanças em homologação antes de aplicá-las em produção.
+
+Revisaria periodicamente se os arquivos criados por serviços automatizados seguem o padrão esperado.
