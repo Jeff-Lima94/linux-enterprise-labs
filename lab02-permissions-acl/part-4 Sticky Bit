@@ -136,6 +136,8 @@ Onde:
 ↓
 
 Sticky Bit
+
+
 Exercício Prático
 
 Supondo que você tenha dois usuários do Lab 01:
@@ -234,6 +236,8 @@ Verifique:
 quem é o proprietário do arquivo;
 quem é o proprietário do diretório;
 se o teste está sendo feito como root (o root sempre poderá remover arquivos).
+
+
 Problema 3
 
 O diretório está com:
