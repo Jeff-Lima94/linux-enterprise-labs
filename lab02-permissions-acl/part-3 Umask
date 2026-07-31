@@ -277,6 +277,8 @@ Boas práticas
 
 ✔ Documente alterações globais em servidores de produção.
 
+
+
 Como validar
 
 Ao concluir esta etapa, você deve conseguir responder:
@@ -293,6 +295,8 @@ Qual a diferença entre 022, 027 e 077?
 
 O umask altera arquivos já existentes?
 
+
+
 Perguntas de entrevista
 
 O que é umask e qual seu objetivo?
@@ -306,6 +310,10 @@ Em quais situações você utilizaria umask 077?
 Como verificar o umask atual?
 
 Alterar o umask afeta arquivos existentes?
+
+
+
+
 
 O que eu faria em produção?
 
