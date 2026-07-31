@@ -1,0 +1,458 @@
+LAB 02 — Parte 5: SGID (Set Group ID)
+Objetivo
+
+Ao final desta etapa você será capaz de:
+
+Entender o que é o SGID.
+Diferenciar SGID em arquivos e diretórios.
+Configurar diretórios colaborativos.
+Fazer arquivos herdarem automaticamente o grupo correto.
+Integrar SGID com umask e ACL.
+Resolver problemas comuns em ambientes corporativos.
+Cenário Corporativo
+
+Você administra um servidor Linux utilizado por uma equipe de desenvolvimento.
+
+Existe o diretório:
+
+/projetos/backend
+
+Todos pertencem ao grupo:
+
+backend
+
+O problema é que cada desenvolvedor cria arquivos com seu grupo primário.
+
+Resultado:
+
+joao
+
+↓
+
+cria
+
+↓
+
+api.js
+
+↓
+
+grupo = joao
+
+Maria tenta editar.
+
+Resposta:
+
+Permission denied
+
+Todos pertencem ao mesmo projeto.
+
+Mesmo assim não conseguem colaborar.
+
+Por que isso acontece?
+
+Vamos imaginar:
+
+Usuário:
+
+joao
+
+Grupo principal:
+
+joao
+
+Agora:
+
+touch api.py
+
+O Linux cria:
+
+Owner:
+
+joao
+
+Grupo:
+
+joao
+
+Não importa em qual diretório ele esteja.
+
+O comportamento padrão é utilizar o grupo primário do usuário.
+
+É aqui que o SGID entra.
+
+O que é SGID?
+
+SGID significa:
+
+Set Group ID
+
+Quando aplicado em um diretório, ele muda completamente esse comportamento.
+
+Todo arquivo criado dentro do diretório herda automaticamente o grupo do diretório.
+
+Exemplo:
+
+Sem SGID:
+
+/projetos
+
+Grupo:
+
+backend
+
+↓
+
+João cria
+
+↓
+
+grupo = joao
+
+Com SGID:
+
+/projetos
+
+Grupo:
+
+backend
+
+↓
+
+João cria
+
+↓
+
+grupo = backend
+
+É exatamente isso que queremos em ambientes colaborativos.
+
+Criando o laboratório
+
+Crie um diretório:
+
+sudo mkdir /projetos
+
+sudo chgrp backend /projetos
+
+sudo chmod 775 /projetos
+
+Veja as permissões:
+
+ls -ld /projetos
+
+Resultado:
+
+drwxrwxr-x
+
+Até aqui tudo normal.
+
+Ativando SGID
+
+Execute:
+
+sudo chmod g+s /projetos
+
+Ou:
+
+sudo chmod 2775 /projetos
+
+Agora:
+
+ls -ld /projetos
+
+Resultado esperado:
+
+drwxrwsr-x
+
+Observe:
+
+s
+
+no lugar do:
+
+x
+
+Esse pequeno detalhe muda completamente o comportamento do diretório.
+
+Testando
+
+Como João:
+
+touch /projetos/api.py
+
+Veja:
+
+ls -l /projetos
+
+Resultado:
+
+-rw-r--r--
+
+Owner:
+
+joao
+
+Grupo:
+
+backend
+
+Perceba:
+
+Mesmo que João pertença ao grupo principal "joao", o arquivo herdou:
+
+backend
+
+É exatamente esse o objetivo do SGID.
+
+Exercício Prático
+
+Supondo os usuários do Lab 01:
+
+joao
+
+maria
+
+carlos
+
+Todos pertencem ao grupo:
+
+backend
+
+Faça:
+
+sudo mkdir /projetos/backend
+
+sudo chgrp backend /projetos/backend
+
+sudo chmod 2775 /projetos/backend
+
+Agora cada usuário cria um arquivo.
+
+Resultado esperado:
+
+Owner
+
+↓
+
+João
+
+Grupo
+
+↓
+
+backend
+
+Todos os arquivos devem herdar o mesmo grupo.
+
+Entendendo o número 2775
+
+Vamos decompor:
+
+2 775
+
+O primeiro número representa:
+
+2
+
+↓
+
+SGID
+
+Os demais:
+
+775
+
+São as permissões tradicionais.
+
+Integrando com o umask
+
+Agora entra uma situação real.
+
+Imagine:
+
+SGID configurado.
+
+Mas:
+
+umask = 077
+
+O grupo será herdado corretamente.
+
+Porém:
+
+-rw-------
+
+Maria continua sem acesso.
+
+Por quê?
+
+Porque o umask removeu as permissões do grupo.
+
+É exatamente por isso que SGID e umask precisam ser pensados em conjunto.
+
+Em muitos ambientes colaborativos, um umask 002 ou 027 faz mais sentido do que 077.
+
+Integrando com ACL
+
+Outro cenário.
+
+Você possui:
+
+SGID
+
+Mas deseja:
+
+backend → leitura e escrita
+QA → apenas leitura
+DevOps → leitura e escrita
+
+Com permissões tradicionais isso se torna limitado.
+
+É aí que entra a ACL.
+
+Por isso estudamos na seguinte ordem:
+
+chmod
+
+↓
+
+chown
+
+↓
+
+umask
+
+↓
+
+Sticky Bit
+
+↓
+
+SGID
+
+↓
+
+ACL
+
+Cada recurso resolve uma limitação do anterior.
+
+
+
+Troubleshooting
+Problema 1
+
+Arquivo não herdou o grupo.
+
+Verifique:
+
+ls -ld diretorio
+
+Existe:
+
+s
+
+na permissão?
+
+
+Problema 2
+
+Grupo correto.
+
+Mas ninguém consegue editar.
+
+Verifique:
+
+umask
+
+Talvez ele esteja removendo a escrita do grupo.
+
+
+Problema 3
+
+Usuário pertence ao grupo.
+
+Mesmo assim recebe:
+
+Permission denied
+
+Verifique:
+
+id usuario
+
+Depois:
+
+getfacl diretorio
+
+Talvez exista ACL restringindo acesso.
+
+
+Problema 4
+
+Tudo parece correto.
+
+Mas continua falhando.
+
+Verifique:
+
+ls -Zd diretorio
+
+Em RHEL e Oracle Linux, o SELinux também pode impedir o acesso, mesmo com permissões Unix corretas.
+
+
+
+Boas práticas
+
+✔ Utilize SGID em diretórios compartilhados por equipes.
+
+✔ Evite alterar o grupo de cada arquivo manualmente.
+
+✔ Combine SGID com grupos bem definidos.
+
+✔ Revise o umask utilizado pelos usuários.
+
+✔ Documente a finalidade do diretório compartilhado.
+
+✔ Teste o acesso com um usuário comum, não apenas como root.
+
+
+
+O que eu faria em produção?
+
+Imagine um ambiente de desenvolvimento:
+
+/opt/projetos
+
+Configuração:
+
+Grupo: desenvolvimento
+Permissão: 2775
+umask: 002
+
+Resultado:
+
+Todos os arquivos pertencem ao grupo correto.
+Desenvolvedores conseguem colaborar sem ajustes manuais.
+Novos integrantes precisam apenas ser adicionados ao grupo.
+
+Essa configuração é muito comum em equipes de desenvolvimento e infraestrutura.
+
+
+
+Como validar
+
+Você deve conseguir responder:
+
+O que é SGID?
+Qual a diferença entre SGID em arquivos e diretórios?
+Por que utilizamos SGID em diretórios compartilhados?
+Como o SGID interage com o umask?
+Quando o SGID sozinho não é suficiente?
+
+
+Perguntas de entrevista
+O que é o SGID e qual problema ele resolve?
+Qual a diferença entre aplicar SGID em um arquivo e em um diretório?
+Como configurar um diretório para que todos os arquivos herdem o mesmo grupo?
+Por que um umask inadequado pode inviabilizar um diretório colaborativo mesmo com SGID?
+Em quais situações você combinaria SGID com ACL?
