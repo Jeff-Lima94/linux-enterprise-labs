@@ -1,0 +1,304 @@
+LAB 02 — Parte 4: Sticky Bit
+Objetivo
+
+Ao final desta etapa você será capaz de:
+
+Entender o que é o Sticky Bit.
+Identificar diretórios que utilizam esse recurso.
+Configurar Sticky Bit.
+Validar seu funcionamento.
+Resolver problemas de colaboração em diretórios compartilhados.
+Aplicar boas práticas de segurança.
+Cenário Corporativo
+
+Você administra um servidor Linux utilizado por dezenas de desenvolvedores.
+
+Existe um diretório compartilhado:
+
+/compartilhado
+
+Todos precisam:
+
+criar arquivos;
+editar seus próprios arquivos;
+remover apenas os arquivos que criaram.
+
+Hoje qualquer usuário consegue apagar arquivos de qualquer colega.
+
+Isso representa um risco operacional.
+
+Sua missão é impedir esse comportamento.
+
+Antes de entender o Sticky Bit
+
+Vamos revisar rapidamente.
+
+Imagine:
+
+drwxrwxrwx
+
+Todos possuem:
+
+leitura
+escrita
+execução
+
+Qual o problema?
+
+Se João criar:
+
+relatorio.xlsx
+
+Maria poderá executar:
+
+rm relatorio.xlsx
+
+Mesmo não sendo a proprietária.
+
+Isso acontece porque a permissão de escrita pertence ao diretório, não ao arquivo.
+
+Esse detalhe é extremamente importante.
+
+O que é Sticky Bit?
+
+Sticky Bit altera essa regra.
+
+Quando ativado em um diretório:
+
+Apenas o proprietário do arquivo, o proprietário do diretório ou o usuário root podem remover ou renomear arquivos.
+
+Todos continuam podendo criar arquivos.
+
+Mas ninguém consegue apagar o trabalho do colega.
+
+Onde encontramos isso?
+
+O exemplo clássico é:
+
+/tmp
+
+Verifique:
+
+ls -ld /tmp
+
+Provavelmente verá algo parecido com:
+
+drwxrwxrwt
+
+Observe a letra:
+
+t
+
+Ela indica que o Sticky Bit está ativo.
+
+Como habilitar
+
+Crie um laboratório:
+
+mkdir ~/lab-sticky
+
+chmod 777 ~/lab-sticky
+
+ls -ld ~/lab-sticky
+
+Resultado:
+
+drwxrwxrwx
+
+Agora:
+
+chmod +t ~/lab-sticky
+
+Verifique novamente:
+
+ls -ld ~/lab-sticky
+
+Resultado:
+
+drwxrwxrwt
+
+Perceba o t no final.
+
+Utilizando modo numérico
+
+Também é possível utilizar:
+
+chmod 1777 ~/lab-sticky
+
+O primeiro número representa o Sticky Bit.
+
+1 777
+
+Onde:
+
+1
+
+↓
+
+Sticky Bit
+Exercício Prático
+
+Supondo que você tenha dois usuários do Lab 01:
+
+joao
+
+maria
+
+Faça o seguinte.
+
+Como João:
+
+su - joao
+
+cd /compartilhado
+
+touch arquivo-joao.txt
+
+Depois troque para Maria:
+
+su - maria
+
+rm arquivo-joao.txt
+
+Sem Sticky Bit:
+
+Arquivo removido.
+
+Agora habilite:
+
+chmod 1777 /compartilhado
+
+Repita o teste.
+
+Resultado esperado:
+
+rm: cannot remove 'arquivo-joao.txt': Operation not permitted
+
+Esse é exatamente o comportamento desejado.
+
+Entendendo a letra "t"
+
+Existem dois casos.
+
+Quando o diretório possui execução para Others:
+
+drwxrwxrwt
+
+Aparece:
+
+t
+
+Quando não possui execução:
+
+drwxrwxrwT
+
+Aparece:
+
+T
+
+Essa diferença costuma aparecer em provas da RHCSA e da LPI.
+
+Validação
+
+Verifique:
+
+ls -ld /compartilhado
+
+Depois:
+
+stat /compartilhado
+
+O comando stat fornece uma visão mais detalhada das permissões e é muito útil em troubleshooting.
+
+
+
+Troubleshooting
+
+Problema 1
+
+Usuário ainda consegue apagar arquivos.
+
+Verifique:
+
+ls -ld diretorio
+
+O Sticky Bit realmente está configurado?
+
+
+Problema 2
+
+Sticky Bit configurado, mas continua falhando.
+
+Verifique:
+
+quem é o proprietário do arquivo;
+quem é o proprietário do diretório;
+se o teste está sendo feito como root (o root sempre poderá remover arquivos).
+Problema 3
+
+O diretório está com:
+
+755
+
+Nesse caso, apenas o proprietário pode escrever no diretório.
+
+O Sticky Bit não resolve falta de permissão de escrita.
+
+Primeiro ajuste as permissões do diretório.
+
+Depois utilize Sticky Bit.
+
+
+
+Boas práticas
+
+✔ Utilize Sticky Bit apenas em diretórios compartilhados.
+
+✔ Nunca aplique Sticky Bit indiscriminadamente em todo o sistema.
+
+✔ Revise periodicamente diretórios públicos com permissão de escrita.
+
+✔ Mantenha /tmp com a configuração padrão da distribuição.
+
+
+
+O que eu faria em produção?
+
+Imagine um servidor de integração contínua (CI), onde vários usuários e processos gravam arquivos temporários.
+
+Uma configuração comum seria:
+
+/var/tmp/builds
+
+Com permissões:
+
+chmod 1777 /var/tmp/builds
+
+Assim:
+
+todos conseguem criar arquivos temporários;
+ninguém remove os arquivos de outro usuário;
+reduzimos riscos de acidentes e interrupções de processos.
+
+Em um ambiente bancário ou de grande porte, essa configuração costuma fazer parte dos padrões de hardening.
+
+
+
+Como validar
+
+Você deve conseguir responder:
+
+O que é Sticky Bit?
+Em quais tipos de objeto ele faz sentido?
+Qual a diferença entre t e T?
+Por que o /tmp utiliza Sticky Bit?
+O Sticky Bit substitui permissões rwx?
+
+
+Perguntas de entrevista
+O que é o Sticky Bit?
+Qual problema ele resolve?
+Por que o /tmp possui 1777?
+Qual a diferença entre 1777 e 777?
+Em quais situações você utilizaria Sticky Bit?
+O que significa a letra T maiúscula?
